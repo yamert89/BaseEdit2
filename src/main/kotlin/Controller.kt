@@ -7,8 +7,8 @@ class GenController: Controller() {
 
 
     fun getData(): ObservableList<Area> {
-        tableData.addAll(listOf(Area(2, 3, 3.0, 1101, 121400, 0, 0),
-            Area(2, 3, 3.0, 1108, 121400, 445, 0)).asObservable())
+        tableData.addAll(listOf(Area(1, 3, 3.0, 1101, 121400, 0, 0),
+            Area(2, 3, 4.0, 1108, 304601, 445, 0)).asObservable())
         return tableData
     }
 

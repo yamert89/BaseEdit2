@@ -1,10 +1,7 @@
-import javafx.beans.property.DoubleProperty
-import javafx.beans.property.IntegerProperty
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleIntegerProperty
+import javafx.beans.property.*
 import tornadofx.*
 
-class Area(number: Int, numberKv: Int, area: Double, categoryArea: Int, categoryProtection: Int, ozu: Int, lesb: Int) {
+class Area(number: Int, numberKv: Int, area: Double, categoryArea: Int, categoryProtection: Int, ozu: Int, lesb: Int, temp: String = "df") {
     var numberProperty = SimpleIntegerProperty(this, "number", number)
     var number by numberProperty
 
@@ -17,7 +14,7 @@ class Area(number: Int, numberKv: Int, area: Double, categoryArea: Int, category
     var categoryAreaProperty = SimpleIntegerProperty(this, "catArea", categoryArea)
     var categoryArea by categoryAreaProperty
 
-    var categoryProtectionProperty = SimpleIntegerProperty(this, "catProt", categoryArea)
+    var categoryProtectionProperty = SimpleIntegerProperty(this, "catProt", categoryProtection)
     var categoryProtection by categoryProtectionProperty
 
     var ozuProperty = SimpleIntegerProperty(this, "ozu", ozu)
@@ -25,6 +22,9 @@ class Area(number: Int, numberKv: Int, area: Double, categoryArea: Int, category
 
     var lesbProperty = SimpleIntegerProperty(this, "lesb", lesb)
     var lesb by lesbProperty
+
+    var tempProperty = SimpleStringProperty(this, "temp", temp)
+    var temp by tempProperty
 }
 
 class AreaModel: ItemViewModel<Area>(){
@@ -35,6 +35,7 @@ class AreaModel: ItemViewModel<Area>(){
     val categoryProtection = bind(Area::categoryProtectionProperty) as IntegerProperty
     val ozu = bind(Area::ozuProperty) as IntegerProperty
     val lesb = bind(Area::lesbProperty) as IntegerProperty
+    val temp = bind(Area::tempProperty) as StringProperty
 }
 
 
