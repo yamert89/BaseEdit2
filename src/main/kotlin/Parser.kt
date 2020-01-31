@@ -3,17 +3,32 @@ import java.io.RandomAccessFile
 
 class Parser {
     private lateinit var raf: RandomAccessFile
+    private var globalOffset = 0L
 
 
     fun Parser.parseFile(file: File): List<Area>{
         raf = RandomAccessFile(file, "rw")
-
-        return emptyList()
+        val list = mutableListOf<Area>()
+        while (raf.filePointer < file.length()){
+            list.add(Area(
+                readNumber().toInt(),
+                readNumberKv().toInt(),
+                (readArea().toDouble() * 0.1),
+                readCategoryArea(),
+                readCategoryProtection(),
+                readOzu(),
+                readLesb()
+            ))
+            nextLine()
+        }
+        raf.close()
+        return list
     }
 
     private fun nextLine(){
         var byte = 0
         while (byte != 10 ) byte = raf.read()
+        globalOffset = raf.filePointer
     }
 
     private fun readCategoryProtection() = readToken(0, 6)
@@ -22,10 +37,11 @@ class Parser {
     private fun readLesb() = readToken(14, 4)
     private fun readArea() = readToken(33, 5)
     private fun readOzu() = readToken(42, 4)
+    private fun readCategoryArea() = readToken(38, 4)
 
     private fun readToken(offset: Int, size: Int) : String{
         val arr = ByteArray(size)
-        raf.read(arr, offset, size)
+        raf.read(arr, offset + globalOffset.toInt(), size)
         return arr.toString()
     }
 

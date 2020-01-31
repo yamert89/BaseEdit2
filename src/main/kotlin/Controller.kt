@@ -17,9 +17,7 @@ class GenController: Controller() {
 
     }
 
-    fun initData(file: File){
-
-    }
+    fun initData(file: File) = Parser
 
 
 }
