@@ -1,15 +1,17 @@
+import javafx.beans.property.Property
 import javafx.geometry.Insets
-import javafx.scene.control.Alert
-import javafx.scene.control.Button
-import javafx.scene.control.ButtonType
-import javafx.scene.control.TableView
+import javafx.scene.control.*
+import javafx.scene.control.cell.ComboBoxTableCell
 import javafx.scene.input.KeyCombination
+import javafx.stage.FileChooser
 import javafx.util.StringConverter
+import javafx.util.converter.DefaultStringConverter
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
 
 fun main() {
     launch<BaseEdit2>()
+
 }
 
 class BaseEdit2: App(ParentView::class)
@@ -21,12 +23,20 @@ class ParentView : View(){
     var tableView: TableView<Area>? = null
     val model: AreaModel by inject()
     val dataTypes = DataTypes()
-    val d: Int? = null
-    val l: Long? = null
+    var colum: TableColumn<Area, String?>? = null
 
 
     override val root = vbox {
         hbox {
+            button ("Открыть"){
+                action {
+                    val files = chooseFile("Выберите файл", mode = FileChooserMode.Single, filters = arrayOf())
+                    //todo filters
+                    controller.initData(files[0])
+
+                }
+
+            }
 
 
              button("Добавить"){
@@ -37,7 +47,7 @@ class ParentView : View(){
                         return@action
                     }
                     val item = selected!!
-                    controller.tableData.add(selectedRow, Area(0, item.numberKv, 0.0, item.categoryArea, 0, item.ozu, item.lesb))
+                    controller.tableData.add(selectedRow, Area(0, item.numberKv, 0.0, item.categoryArea, "0", item.ozu, item.lesb))
                     tableView?.selectionModel?.select(selectedRow)
 
                 }
@@ -70,8 +80,9 @@ class ParentView : View(){
             readonlyColumn("Кв", Area::numberKv)
             readonlyColumn("Выд", Area::number)
             column("Площадь", Area::area).makeEditable()
-            column("К. защитности", Area::categoryProtection).makeEditable().useComboBox()
-            column("dd", Area::temp).makeEditable().useComboBox(listOf("ddd", "sdsd").asObservable())
+            column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.keys.toList().asObservable())
+
+
 
             //useComboBox<Int>(dataTypes.categoryProtection.keys.toList().asObservable())
             readonlyColumn("К. земель", Area::categoryArea)
@@ -94,6 +105,26 @@ class Modal(message: String) : Fragment(){
     override val root = stackpane {
         label(message)
 
+    }
+}
+
+class AdvancedStringConverter(private val dataMap: Map<String, String>): DefaultStringConverter(){
+    override fun toString(value: String): String {
+        return super.toString(dataMap[value])
+    }
+
+    override fun fromString(value: String?): String {
+        return dataMap.filterValues { it == value }.iterator().next().key
+    }
+}
+
+class IntToStringConverter(private val dataMap: Map<Int, String>): IntegerStringConverter(){
+    override fun toString(value: Int?): String {
+        return dataMap[value]!!
+    }
+
+    override fun fromString(value: String?): Int {
+        return dataMap.filterValues { it == value }.iterator().next().key
     }
 }
 
