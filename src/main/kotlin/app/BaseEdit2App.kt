@@ -7,6 +7,9 @@ import javafx.util.converter.DefaultStringConverter
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
 import app.*
+import javafx.scene.input.KeyCharacterCombination
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
 import javafx.scene.paint.Color
 
 
@@ -72,7 +75,8 @@ class ParentView : View(){
                     tableView?.selectionModel?.select(selectedRow)
 
                 }
-                shortcut("Ctrl+Q")
+                //shortcut(KeyCharacterCombination("+"))
+                shortcut(KeyCodeCombination(KeyCode.ADD))
 
 
             }
@@ -89,11 +93,15 @@ class ParentView : View(){
                     }else alert.close()*/
 
                 }
+                shortcut(KeyCodeCombination(KeyCode.SUBTRACT))
             }
             button("Сохранить") {
                 hboxConstraints { margin = Insets(10.0) }
                 action {
-                    controller.save()
+                    runAsyncWithProgress {
+                        controller.save()
+                    }
+
                 }
 
 

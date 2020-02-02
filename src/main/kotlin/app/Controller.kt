@@ -4,6 +4,10 @@ import javafx.collections.ObservableList
 import tornadofx.Controller
 import tornadofx.asObservable
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class GenController: Controller() {
     val tableData = emptyList<Area>().toMutableList().asObservable()
@@ -16,7 +20,11 @@ class GenController: Controller() {
     }
 
     fun save(){
-        FileExecutor().saveFile(File(filePath + "_temp"), tableData)
+        /*var name = "$filePath.bak"
+        while (Files.exists(Paths.get(name))) name+="1"*/
+        val res = File(filePath).renameTo(File("${filePath}_${LocalTime.now().format(DateTimeFormatter.ofPattern("HH_mm_ss"))}.bak"))
+        print(res)
+        FileExecutor().saveFile(File(filePath), tableData)
     }
 
     fun initData(file: File){

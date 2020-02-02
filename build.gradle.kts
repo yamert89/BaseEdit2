@@ -1,5 +1,7 @@
 plugins {
     kotlin("jvm") version "1.3.61"
+    id("com.github.johnrengelman.shadow") version("5.2.0")
+    java
 }
 
 group = "BaseEdit2"
@@ -10,6 +12,15 @@ repositories {
     mavenCentral()
     flatDir{
         dirs("lib")
+    }
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath("com.github.jengelman.gradle.plugins:shadow:5.2.0")
     }
 }
 
@@ -27,7 +38,10 @@ dependencies {
         "lib/javafx.swt.jar"
 
     ))
+
 }
+
+
 
 tasks {
     compileKotlin {
@@ -36,4 +50,26 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "11"
     }
+
+    /*jar{
+        manifest {
+            attributes("Main-Class" to "main.kotlin.app.BaseEdit2AppKt")
+        }
+
+        from {
+            configurations.implementation.
+            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+    }*/
+    shadowJar{
+        archiveName = "BaseEdit2"
+        manifest {
+            attributes("Main-Class" to "main.kotlin.app.BaseEdit2AppKt")
+        }
+    }
+
+
+
+
 }
+

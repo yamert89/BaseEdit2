@@ -31,7 +31,7 @@ class FileExecutor {
                     readRawData()
                 )
             )
-            println("list add " + ++counter)
+            //println("list add " + ++counter)
             //nextLine()
         }
         raf.close()
