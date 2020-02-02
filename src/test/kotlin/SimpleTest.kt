@@ -27,6 +27,7 @@ fun backspace(){
 fun write(){
     val file = File("J://esn2.log")
     val raf = RandomAccessFile(file, "rw")
+    raf.setLength(raf.length() + 2)
     raf.write(byteArrayOf(48.toByte(), 48.toByte()), 0, 2)
     raf.close()
 }

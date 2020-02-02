@@ -3,7 +3,7 @@ package app
 import javafx.beans.property.*
 import tornadofx.*
 
-class Area(number: Int, numberKv: Int, area: Double, categoryArea: String, categoryProtection: String, ozu: String, lesb: String) {
+class Area(number: Int, numberKv: Int, area: Double, categoryArea: String, categoryProtection: String, ozu: String, lesb: String, val rawData: RawData) {
     var numberProperty = SimpleIntegerProperty(this, "number", number)
     var number by numberProperty
 
@@ -37,6 +37,8 @@ class AreaModel: ItemViewModel<Area>(){
     val lesb = bind(Area::lesbProperty) as StringProperty
 
 }
+
+class RawData(val admRegion: ByteArray, val data2: ByteArray, val data3: Int, val data4: ByteArray?)
 
 
 

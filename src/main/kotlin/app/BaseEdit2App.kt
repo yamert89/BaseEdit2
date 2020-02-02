@@ -7,18 +7,8 @@ import javafx.util.converter.DefaultStringConverter
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
 import app.*
+import javafx.scene.paint.Color
 
-
-/*class BaseEdit2App {
-
-    companion object {
-        @JvmStatic
-        fun main(args : Array<String>) {
-            launch<BaseEdit2>(args)
-
-        }
-    }
-}*/
 
 fun main(args : Array<String>) {
     launch<BaseEdit2>()
@@ -34,7 +24,7 @@ class ParentView : View(){
     var selected: Area? = null
     var selectedRow: Int = 0
     var tableView: TableView<Area>? = null
-    lateinit var progressBar: ProgressBar
+    var progressBar: ProgressBar = ProgressBar()
     val model: AreaModel by inject()
     val dataTypes = DataTypes()
     var colum: TableColumn<Area, String?>? = null
@@ -43,15 +33,27 @@ class ParentView : View(){
     override val root = vbox {
 
         hbox {
+
             button ("Открыть"){
                 action {
                     val files = chooseFile("Выберите файл", mode = FileChooserMode.Single, filters = arrayOf())
                     //todo filters
-                    progressBar.isVisible = true
-                    controller.initData(files[0])
-                    progressBar.isVisible = false
+                    //progressBar.isVisible = true
+                    println("start")
+                    runAsyncWithProgress/*(progress = progressBar)*/ {
+                        controller.initData(files[0])
+                        println("end init")
+                    }ui{
+                        //progressBar.isVisible = false
+                        println("visible false")
+                    }
+                    println("end")
+
+
 
                 }
+                hboxConstraints { margin = Insets(10.0) }
+
 
             }
 
@@ -65,7 +67,7 @@ class ParentView : View(){
                     }
                     val item = selected!!
                     controller.tableData.add(selectedRow,
-                        Area(0, item.numberKv, 0.0, item.categoryArea, "0", item.ozu, item.lesb)
+                        Area(0, item.numberKv, 0.0, item.categoryArea, "0", item.ozu, item.lesb, item.rawData)
                     )
                     tableView?.selectionModel?.select(selectedRow)
 
@@ -88,7 +90,14 @@ class ParentView : View(){
 
                 }
             }
-            button("Сохранить") {  }
+            button("Сохранить") {
+                hboxConstraints { margin = Insets(10.0) }
+                action {
+                    controller.save()
+                }
+
+
+            }
 
 
 
@@ -96,6 +105,7 @@ class ParentView : View(){
         }
         tableView = tableview(controller.getData()) {
             isEditable = true
+                // readonlyColumn("№", )
             readonlyColumn("Кв", Area::numberKv)
             readonlyColumn("Выд", Area::number)
             column("Площадь", Area::area).makeEditable()
@@ -118,8 +128,18 @@ class ParentView : View(){
             //column("Кат. защ")
 
         }
+        //progressBar.attachTo(this)
+        //progressBar.prefWidth = this.width
         progressBar = progressbar {
             prefWidth = tableView!!.width
+            style(true) {
+                borderColor += box(Color.RED)
+            }
+
+           /* progressProperty().addListener {
+                observableValue, old, new -> print("VALUE: $observableValue $old $new")
+            }*/
+
             //isVisible = false
 
 
