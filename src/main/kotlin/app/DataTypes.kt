@@ -1,3 +1,5 @@
+package app
+
 class DataTypes {
     val categoryArea: MutableMap<String, String> = mutableMapOf()
     val categoryProtection: MutableMap<String, String> = mutableMapOf()

@@ -1,3 +1,5 @@
+package app
+
 import javafx.beans.property.*
 import tornadofx.*
 

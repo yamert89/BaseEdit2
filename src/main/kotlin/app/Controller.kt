@@ -1,3 +1,5 @@
+package app
+
 import javafx.collections.ObservableList
 import tornadofx.Controller
 import tornadofx.asObservable
@@ -8,8 +10,7 @@ class GenController: Controller() {
 
 
     fun getData(): ObservableList<Area> {
-        tableData.addAll(listOf(Area(1, 3, 3.0, "1101", "во", "0", "0"),
-            Area(2, 3, 4.0, "1108", "экспл", "445", "0")).asObservable())
+
         return tableData
     }
 
@@ -17,7 +18,11 @@ class GenController: Controller() {
 
     }
 
-    fun initData(file: File) = Parser
+    fun initData(file: File){
+        tableData.addAll(FileExecutor().parseFile(file))
+    }
 
 
 }
+
+

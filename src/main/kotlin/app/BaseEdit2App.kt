@@ -1,38 +1,55 @@
-import javafx.beans.property.Property
+package main.kotlin.app
+
 import javafx.geometry.Insets
 import javafx.scene.control.*
-import javafx.scene.control.cell.ComboBoxTableCell
-import javafx.scene.input.KeyCombination
-import javafx.stage.FileChooser
-import javafx.util.StringConverter
+import javafx.scene.layout.Priority
 import javafx.util.converter.DefaultStringConverter
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
+import app.*
 
-fun main() {
+
+/*class BaseEdit2App {
+
+    companion object {
+        @JvmStatic
+        fun main(args : Array<String>) {
+            launch<BaseEdit2>(args)
+
+        }
+    }
+}*/
+
+fun main(args : Array<String>) {
     launch<BaseEdit2>()
 
 }
+
 
 class BaseEdit2: App(ParentView::class)
 
 class ParentView : View(){
     val controller: GenController by inject()
+
     var selected: Area? = null
     var selectedRow: Int = 0
     var tableView: TableView<Area>? = null
+    lateinit var progressBar: ProgressBar
     val model: AreaModel by inject()
     val dataTypes = DataTypes()
     var colum: TableColumn<Area, String?>? = null
 
 
     override val root = vbox {
+
         hbox {
             button ("Открыть"){
                 action {
                     val files = chooseFile("Выберите файл", mode = FileChooserMode.Single, filters = arrayOf())
                     //todo filters
+                    progressBar.isVisible = true
                     controller.initData(files[0])
+                    progressBar.isVisible = false
 
                 }
 
@@ -47,7 +64,9 @@ class ParentView : View(){
                         return@action
                     }
                     val item = selected!!
-                    controller.tableData.add(selectedRow, Area(0, item.numberKv, 0.0, item.categoryArea, "0", item.ozu, item.lesb))
+                    controller.tableData.add(selectedRow,
+                        Area(0, item.numberKv, 0.0, item.categoryArea, "0", item.ozu, item.lesb)
+                    )
                     tableView?.selectionModel?.select(selectedRow)
 
                 }
@@ -58,7 +77,7 @@ class ParentView : View(){
             button("Удалить"){
                 hboxConstraints { margin = Insets(10.0) }
                 action {
-                    //find(Modal::class).openModal()
+                    //find(app.main.kotlin.app.Modal::class).openModal()
                     alert(Alert.AlertType.CONFIRMATION, "Удалить?", actionFn = {buttonType ->
                         if (buttonType == ButtonType.OK) controller.tableData.removeAt(selectedRow)
                     } )
@@ -84,6 +103,7 @@ class ParentView : View(){
 
 
 
+
             //useComboBox<Int>(dataTypes.categoryProtection.keys.toList().asObservable())
             readonlyColumn("К. земель", Area::categoryArea)
             column("ОЗУ", Area::ozu).makeEditable()
@@ -92,8 +112,16 @@ class ParentView : View(){
                 selected = this.selectedItem
                 selectedRow = this.selectedCell?.row ?: selectedRow
             }
+            vgrow = Priority.ALWAYS
+
 
             //column("Кат. защ")
+
+        }
+        progressBar = progressbar {
+            prefWidth = tableView!!.width
+            //isVisible = false
+
 
         }
     }
