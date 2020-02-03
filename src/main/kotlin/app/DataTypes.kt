@@ -7,7 +7,7 @@ class DataTypes {
     init {
 
         ozu.putAll(mapOf(
-            "000" to "нет",
+            "000" to "-",
             "021" to "уч. среди безлесн",
             "062" to "бз",
             "073" to "опушка",

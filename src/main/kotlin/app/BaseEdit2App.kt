@@ -26,11 +26,13 @@ class ParentView : View(){
 
     var selected: Area? = null
     var selectedRow: Int = 0
+    var selectedCol: TableColumn<Area, *>? = null
     var tableView: TableView<Area>? = null
     var progressBar: ProgressBar = ProgressBar()
     val model: AreaModel by inject()
     val dataTypes = DataTypes()
     var colum: TableColumn<Area, String?>? = null
+    var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
 
 
     override val root = vbox {
@@ -72,7 +74,8 @@ class ParentView : View(){
                     controller.tableData.add(selectedRow,
                         Area(0, item.numberKv, 0.0, item.categoryArea, "0", item.ozu, item.lesb, item.rawData)
                     )
-                    tableView?.selectionModel?.select(selectedRow)
+                   // tableView?.selectionModel?.select(selectedRow)
+                    tableView?.selectionModel?.select(selectedRow,  selectedCol)
 
                 }
                 //shortcut(KeyCharacterCombination("+"))
@@ -87,7 +90,7 @@ class ParentView : View(){
                     alert(Alert.AlertType.CONFIRMATION, "Удалить?", actionFn = {buttonType ->
                         if (buttonType == ButtonType.OK) {
                             controller.tableData.removeAt(selectedRow)
-                            tableView!!.selectionModel.select(selectedRow + 1)
+                            tableView!!.selectionModel.select(selectedRow + 1, selectedCol)
                         }
                     } )
                         //val res = alert.showAndWait()
@@ -128,8 +131,13 @@ class ParentView : View(){
             selectionModel.selectedItemProperty().onChange {
                 selected = this.selectedItem
                 selectedRow = this.selectedCell?.row ?: selectedRow
+                selectedCol = this.selectedColumn
             }
             vgrow = Priority.ALWAYS
+            enableCellEditing() //enables easier cell navigation/editing
+            //enableDirtyTracking() //flags cells that are dirty
+
+            tableViewEditModel = editModel
 
 
             //column("Кат. защ")
