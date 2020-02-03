@@ -33,6 +33,10 @@ class GenController: Controller() {
         print("init data done")
     }
 
+    fun executeUtil(param1: Pair<Any, Any>, param2: Pair<Any, Any>, resParam: Pair<Any, Any>){
+        tableData.filter { param1.first == param1.second }
+    }
+
 
 }
 

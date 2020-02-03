@@ -1,9 +1,14 @@
 package app
 
 class DataTypes {
-    val categoryArea: MutableMap<String, String> = mutableMapOf()
+    //val categoryArea: MutableMap<String, String> = mutableMapOf()
     val categoryProtection: MutableMap<String, String> = mutableMapOf()
     val ozu: MutableMap<String, String> = mutableMapOf()
+    val parameters = mapOf<String, Any>(
+        "" to "",
+        "кв" to Area::numberKv,
+        "кат. земель" to Area::categoryArea
+    )
     init {
 
         ozu.putAll(mapOf(

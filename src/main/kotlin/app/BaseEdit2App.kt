@@ -117,32 +117,102 @@ class ParentView : View(){
 
 
         }
-        tableView = tableview(controller.getData()) {
-            isEditable = true
-                // readonlyColumn("№", )
-            readonlyColumn("Кв", Area::numberKv)
-            column("Выд", Area::number).makeEditable()
-            column("Площадь", Area::area).makeEditable()
-            column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
-            //useComboBox<Int>(dataTypes.categoryProtection.keys.toList().asObservable())
-            readonlyColumn("К. земель", Area::categoryArea)
-            column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
-            column("lesb", Area::lesb).makeEditable()
-            selectionModel.selectedItemProperty().onChange {
-                selected = this.selectedItem
-                selectedRow = this.selectedCell?.row ?: selectedRow
-                selectedCol = this.selectedColumn
+        tabpane {
+
+            tab("Редактор"){
+                isClosable = false
+                tableView = tableview(controller.getData()) {
+                    isEditable = true
+                    // readonlyColumn("№", )
+                    readonlyColumn("Кв", Area::numberKv)
+                    column("Выд", Area::number).makeEditable()
+                    column("Площадь", Area::area).makeEditable()
+                    column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
+                    //useComboBox<Int>(dataTypes.categoryProtection.keys.toList().asObservable())
+                    readonlyColumn("К. земель", Area::categoryArea)
+                    column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
+                    column("lesb", Area::lesb).makeEditable()
+                    selectionModel.selectedItemProperty().onChange {
+                        selected = this.selectedItem
+                        selectedRow = this.selectedCell?.row ?: selectedRow
+                        selectedCol = this.selectedColumn
+                    }
+                    vgrow = Priority.ALWAYS
+                    enableCellEditing() //enables easier cell navigation/editing
+                    //enableDirtyTracking() //flags cells that are dirty
+
+                    tableViewEditModel = editModel
+
+
+                    //column("Кат. защ")
+
+                }
             }
-            vgrow = Priority.ALWAYS
-            enableCellEditing() //enables easier cell navigation/editing
-            //enableDirtyTracking() //flags cells that are dirty
 
-            tableViewEditModel = editModel
+            tab("Утилиты"){
+                var par1Key: ComboBox<String>? = null
+                var par2Key: ComboBox<String>? = null
+                var par1Val: TextField? = null
+                var par2Val: TextField? = null
+                var parRes: ComboBox<String>? = null
+                var parResVal: TextField? = null
 
+                isClosable = false
+                val margins = Insets(20.0)
+                vbox {
+                    hbox{
+                        val values = dataTypes.parameters.keys.toList()
 
-            //column("Кат. защ")
+                        vbox {
+
+                            label("Параметр 1")
+                            par1Key = combobox(values = values) { }
+                            label("Параметр 2")
+                            par2Key = combobox(values = values) { }
+                            vboxConstraints { margin = margins }
+                        }
+                        vbox {
+                            label("Фильтр 1")
+                            par1Val = textfield {  }
+                            label("Фильтр 2")
+                            par2Val = textfield {  }
+                            vboxConstraints { margin = margins }
+                        }
+                        vbox {
+                            label("Применить к...")
+                            parRes = combobox(values = values) {  }
+                            vboxConstraints { margin = margins }
+                        }
+                        vbox {
+                            label("Значение")
+                            parResVal = textfield{}
+                            vboxConstraints { margin = margins }
+                        }
+                        vboxConstraints { margin = margins }
+                    }
+                    vbox{
+                        label("Осторожно! Формат значений должен строго совпадать с табличным во избежание потери данных"){
+                            vboxConstraints { maxWidth = 400.0 }
+
+                        }
+                        button("Применить") {
+                            action{
+                                controller.executeUtil(
+                                    par1Key!!.value to par1Val!!.text,
+                                    par2Key!!.value to par2Val!!.text,
+                                    parRes!!.value to parResVal!!.text)
+                            }
+
+                        }
+                        vboxConstraints { margin = margins }
+                    }
+                }
+
+            }
+
 
         }
+
         //progressBar.attachTo(this)
         //progressBar.prefWidth = this.width
         progressBar = progressbar {
