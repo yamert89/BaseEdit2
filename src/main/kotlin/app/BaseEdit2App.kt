@@ -26,11 +26,13 @@ class ParentView : View(){
 
     var selected: Area? = null
     var selectedRow: Int = 0
+    var selectedCol: TableColumn<Area, *>? = null
     var tableView: TableView<Area>? = null
     var progressBar: ProgressBar = ProgressBar()
     val model: AreaModel by inject()
     val dataTypes = DataTypes()
     var colum: TableColumn<Area, String?>? = null
+    var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
 
 
     override val root = vbox {
@@ -72,7 +74,8 @@ class ParentView : View(){
                     controller.tableData.add(selectedRow,
                         Area(0, item.numberKv, 0.0, item.categoryArea, "0", item.ozu, item.lesb, item.rawData)
                     )
-                    tableView?.selectionModel?.select(selectedRow)
+                   // tableView?.selectionModel?.select(selectedRow)
+                    tableView?.selectionModel?.select(selectedRow,  selectedCol)
 
                 }
                 //shortcut(KeyCharacterCombination("+"))
@@ -85,7 +88,10 @@ class ParentView : View(){
                 action {
                     //find(app.main.kotlin.app.Modal::class).openModal()
                     alert(Alert.AlertType.CONFIRMATION, "Удалить?", actionFn = {buttonType ->
-                        if (buttonType == ButtonType.OK) controller.tableData.removeAt(selectedRow)
+                        if (buttonType == ButtonType.OK) {
+                            controller.tableData.removeAt(selectedRow)
+                            tableView!!.selectionModel.select(selectedRow + 1, selectedCol)
+                        }
                     } )
                         //val res = alert.showAndWait()
                    /* if (res.get() == ButtonType.OK){
@@ -115,22 +121,23 @@ class ParentView : View(){
             isEditable = true
                 // readonlyColumn("№", )
             readonlyColumn("Кв", Area::numberKv)
-            readonlyColumn("Выд", Area::number)
+            column("Выд", Area::number).makeEditable()
             column("Площадь", Area::area).makeEditable()
-            column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.keys.toList().asObservable())
-
-
-
-
+            column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
             //useComboBox<Int>(dataTypes.categoryProtection.keys.toList().asObservable())
             readonlyColumn("К. земель", Area::categoryArea)
-            column("ОЗУ", Area::ozu).makeEditable()
+            column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
             column("lesb", Area::lesb).makeEditable()
             selectionModel.selectedItemProperty().onChange {
                 selected = this.selectedItem
                 selectedRow = this.selectedCell?.row ?: selectedRow
+                selectedCol = this.selectedColumn
             }
             vgrow = Priority.ALWAYS
+            enableCellEditing() //enables easier cell navigation/editing
+            //enableDirtyTracking() //flags cells that are dirty
+
+            tableViewEditModel = editModel
 
 
             //column("Кат. защ")

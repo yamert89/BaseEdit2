@@ -12,6 +12,7 @@ class FileExecutor {
     private val byteList = ArrayList<Byte>()
     private val charset = StandardCharsets.US_ASCII
     private var counter = 0L
+    private val dataTypes = DataTypes() //todo replace
 
 
     fun parseFile(file: File): List<Area>{
@@ -19,16 +20,19 @@ class FileExecutor {
         val list = mutableListOf<Area>()
         var counter = 0L
         while (raf.filePointer < file.length()){
+            val catProt = readCategoryProtection()
+            val number = readNumber().toInt()
+            val kvNumber = readNumberKv().toInt()
+            val area = BigDecimal((readArea().toDouble() * 0.1)).setScale(1, RoundingMode.HALF_UP).toDouble()
+            val catArea = readCategoryArea()
+            val lesb = readLesb()
+            val oz = readOzu()
+            val rawData = readRawData()
             list.add(
-                Area(
-                    readNumber().toInt(),
-                    readNumberKv().toInt(),
-                    BigDecimal((readArea().toDouble() * 0.1)).setScale(1, RoundingMode.HALF_UP).toDouble(),
-                    readCategoryArea(),
-                    readCategoryProtection(),
-                    readOzu(),
-                    readLesb(),
-                    readRawData()
+                Area(number, kvNumber, area, catArea,
+                    dataTypes.categoryProtection[catProt] ?: catProt,
+                    dataTypes.ozu[oz] ?: oz,
+                    lesb, rawData
                 )
             )
             //println("list add " + ++counter)
@@ -102,7 +106,9 @@ class FileExecutor {
         val out = ByteArrayOutputStream()
         areas.forEach {
             with(out){
-                write(it.categoryProtection.toByteArray(charset))
+                val catpMap = dataTypes.categoryProtection.filterValues { v -> v == it.categoryProtection }
+                val catProt = if(catpMap.size > 0) catpMap.iterator().next().key else it.categoryProtection
+                write(catProt.toByteArray(charset))
                 write(it.numberKv.addZeroes(4))
                 write(it.rawData.admRegion)
                 write(it.lesb.toByteArray(charset))
@@ -113,7 +119,9 @@ class FileExecutor {
                 write(it.categoryArea.toByteArray(charset))
                 write(it.rawData.data3)
                 if (it.rawData.data4 != null) {
-                    write(it.ozu.toByteArray(charset))
+                    val ozMap = dataTypes.ozu.filterValues { v -> v == it.ozu }
+                    val oz = if(ozMap.size > 0) ozMap.iterator().next().key else it.ozu
+                    write(oz.toByteArray(charset))
                     write(it.rawData.data4)
                 }
                 write(10)
