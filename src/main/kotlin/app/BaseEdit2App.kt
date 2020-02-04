@@ -7,6 +7,7 @@ import javafx.util.converter.DefaultStringConverter
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
 import app.*
+import javafx.scene.AccessibleAction
 import javafx.scene.input.KeyCharacterCombination
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
@@ -93,7 +94,20 @@ class ParentView : View(){
 
 
                     tableView?.selectionModel?.select(selectedRow,  selectedCol)
-                    colum?.cellFactory.toProperty().get().call(colum).startEdit()
+
+                    try{
+                        //colum?.cellFactoryProperty().
+                        //colum?.cellFactory.toProperty().get().call(colum).startEdit()
+                        tableView?.selectionModel?.selectedCells?.get(0)
+                        val cell = colum?.cellFactory.toProperty().value.call(colum)
+                        cell.updateTableColumn(colum)
+                        cell.updateTableView(tableView)
+                       cell.executeAccessibleAction(AccessibleAction.EXPAND)
+
+                    }catch (e: Exception){
+                        e.printStackTrace()
+                    }
+
 
 
 
