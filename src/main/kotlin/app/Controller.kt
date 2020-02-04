@@ -19,11 +19,12 @@ class GenController: Controller() {
         return tableData
     }
 
-    fun save(){
+    fun save(path: String?){
         /*var name = "$filePath.bak"
         while (Files.exists(Paths.get(name))) name+="1"*/
-        val res = File(filePath).renameTo(File("${filePath}_${LocalTime.now().format(DateTimeFormatter.ofPattern("HH_mm_ss"))}.bak"))
-        print(res)
+        if (path == null){
+            File(filePath).renameTo(File("${filePath}_${LocalTime.now().format(DateTimeFormatter.ofPattern("HH_mm_ss"))}.bak"))
+        }else filePath = path
         FileExecutor().saveFile(File(filePath), tableData)
     }
 

@@ -42,6 +42,8 @@ class ParentView : View(){
             button ("Открыть"){
                 action {
                     val files = chooseFile("Выберите файл", mode = FileChooserMode.Single, filters = arrayOf())
+                    if (files.isEmpty()) return@action
+                    controller.tableData.clear()
                     //todo filters
                     //progressBar.isVisible = true
                     println("start")
@@ -77,6 +79,7 @@ class ParentView : View(){
                    // tableView?.selectionModel?.select(selectedRow)
                     tableView?.selectionModel?.select(selectedRow,  selectedCol)
 
+
                 }
                 //shortcut(KeyCharacterCombination("+"))
                 shortcut(KeyCodeCombination(KeyCode.ADD))
@@ -104,13 +107,24 @@ class ParentView : View(){
             button("Сохранить") {
                 hboxConstraints { margin = Insets(10.0) }
                 action {
+                    if(!preSaveCheck()) return@action
                     runAsyncWithProgress {
-                        controller.save()
+                        controller.save(null)
                     }
-
                 }
 
+            }
 
+            button("Сохранить как") {
+                hboxConstraints { margin = Insets(10.0) }
+                action {
+                    if(!preSaveCheck()) return@action
+                    val list = chooseFile("Выберите файл", mode = FileChooserMode.Save, filters = arrayOf())
+                    val path = list[0].absolutePath
+                    runAsyncWithProgress {
+                        controller.save(path)
+                    }
+                }
             }
 
 
@@ -125,8 +139,8 @@ class ParentView : View(){
                     isEditable = true
                     // readonlyColumn("№", )
                     readonlyColumn("Кв", Area::numberKv)
-                    column("Выд", Area::number).makeEditable()
-                    column("Площадь", Area::area).makeEditable()
+                    val colum = column("Выд", Area::number).makeEditable()
+                    val areaColumn = column("Площадь", Area::area).makeEditable()
                     column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
                     //useComboBox<Int>(dataTypes.categoryProtection.keys.toList().asObservable())
                     readonlyColumn("К. земель", Area::categoryArea)
@@ -142,6 +156,20 @@ class ParentView : View(){
                     //enableDirtyTracking() //flags cells that are dirty
 
                     tableViewEditModel = editModel
+
+                   /* areaColumn.setOnEditCommit {
+                        try{
+                            it.newValue
+                        }
+                    }*/
+
+                    areaColumn.setOnEditCommit {
+                        if (it.newValue < 0) alert(Alert.AlertType.ERROR, "Error", "Отрицательная площадь")
+                    }
+
+
+
+
 
 
                     //column("Кат. защ")
@@ -229,6 +257,17 @@ class ParentView : View(){
 
 
         }
+    }
+
+    private fun preSaveCheck(): Boolean{
+        val list = controller.tableData.filter { it.categoryProtection == "0" || it.number == 0 }
+        if(list.isNotEmpty()) {
+            alert(Alert.AlertType.ERROR,
+                "Ошибка",
+                "Категория защитности или номер выдела не проставлены в кварталах: ${list.map { it.numberKv }.distinct().joinToString(", "){ it.toString()}}"  )
+            return false
+        }
+        return true
     }
 
 

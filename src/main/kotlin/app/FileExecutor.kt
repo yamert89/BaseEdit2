@@ -111,7 +111,7 @@ class FileExecutor {
                 write(catProt.toByteArray(charset))
                 write(it.numberKv.addZeroes(4))
                 write(it.rawData.admRegion)
-                write(it.lesb.toByteArray(charset))
+                write(it.lesb.addZeroes(4))
                 write(it.rawData.data2)
                 write(it.number.addZeroes(3))
                 val area = BigDecimal(it.area * 10).setScale(0).toString()
