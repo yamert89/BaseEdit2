@@ -33,6 +33,19 @@ class ParentView : View(){
     val dataTypes = DataTypes()
     var colum: TableColumn<Area, String?>? = null
     var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
+    init {
+        primaryStage.setOnCloseRequest {
+            alert(Alert.AlertType.CONFIRMATION,
+                "Подтверждение", "Сохранить?",
+                ButtonType.OK,
+                ButtonType.NO){
+                if(it == ButtonType.OK) {
+                    if (!preSaveCheck()) return@setOnCloseRequest
+                    controller.save(null)
+                }
+            }
+        }
+    }
 
 
     override val root = vbox {
@@ -41,7 +54,7 @@ class ParentView : View(){
 
             button ("Открыть"){
                 action {
-                    val files = chooseFile("Выберите файл", mode = FileChooserMode.Single, filters = arrayOf())
+                    val files = chooseFile("Выберите файл", owner = primaryStage, mode = FileChooserMode.Single, filters = arrayOf())
                     if (files.isEmpty()) return@action
                     controller.tableData.clear()
                     //todo filters
@@ -76,8 +89,12 @@ class ParentView : View(){
                     controller.tableData.add(selectedRow,
                         Area(0, item.numberKv, 0.0, item.categoryArea, "0", item.ozu, item.lesb, item.rawData)
                     )
-                   // tableView?.selectionModel?.select(selectedRow)
+
+
+
                     tableView?.selectionModel?.select(selectedRow,  selectedCol)
+                    colum?.cellFactory.toProperty().get().call(colum).startEdit()
+
 
 
                 }
@@ -90,10 +107,11 @@ class ParentView : View(){
                 hboxConstraints { margin = Insets(10.0) }
                 action {
                     //find(app.main.kotlin.app.Modal::class).openModal()
-                    alert(Alert.AlertType.CONFIRMATION, "Удалить?", actionFn = {buttonType ->
+                    alert(Alert.AlertType.CONFIRMATION, "Удалить?", owner = primaryStage, actionFn = {buttonType ->
                         if (buttonType == ButtonType.OK) {
                             controller.tableData.removeAt(selectedRow)
                             tableView!!.selectionModel.select(selectedRow + 1, selectedCol)
+
                         }
                     } )
                         //val res = alert.showAndWait()
@@ -119,7 +137,7 @@ class ParentView : View(){
                 hboxConstraints { margin = Insets(10.0) }
                 action {
                     if(!preSaveCheck()) return@action
-                    val list = chooseFile("Выберите файл", mode = FileChooserMode.Save, filters = arrayOf())
+                    val list = chooseFile("Выберите файл", mode = FileChooserMode.Save, filters = arrayOf(), owner = primaryStage)
                     val path = list[0].absolutePath
                     runAsyncWithProgress {
                         controller.save(path)
@@ -132,16 +150,18 @@ class ParentView : View(){
 
         }
         tabpane {
+            vgrow = Priority.ALWAYS
 
             tab("Редактор"){
+                vgrow = Priority.ALWAYS
                 isClosable = false
                 tableView = tableview(controller.getData()) {
                     isEditable = true
                     // readonlyColumn("№", )
                     readonlyColumn("Кв", Area::numberKv)
-                    val colum = column("Выд", Area::number).makeEditable()
+                     column("Выд", Area::number).makeEditable()
                     val areaColumn = column("Площадь", Area::area).makeEditable()
-                    column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
+                    colum = column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
                     //useComboBox<Int>(dataTypes.categoryProtection.keys.toList().asObservable())
                     readonlyColumn("К. земель", Area::categoryArea)
                     column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
@@ -151,17 +171,23 @@ class ParentView : View(){
                         selectedRow = this.selectedCell?.row ?: selectedRow
                         selectedCol = this.selectedColumn
                     }
-                    vgrow = Priority.ALWAYS
+
                     enableCellEditing() //enables easier cell navigation/editing
                     //enableDirtyTracking() //flags cells that are dirty
 
                     tableViewEditModel = editModel
+
+
+
+
+
 
                    /* areaColumn.setOnEditCommit {
                         try{
                             it.newValue
                         }
                     }*/
+
 
                     areaColumn.setOnEditCommit {
                         if (it.newValue < 0) alert(Alert.AlertType.ERROR, "Error", "Отрицательная площадь")
