@@ -7,13 +7,18 @@ import javafx.util.converter.DefaultStringConverter
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
 import app.*
+import javafx.animation.FadeTransition
+import javafx.animation.TranslateTransition
 import javafx.event.EventType
 import javafx.scene.AccessibleAction
 import javafx.scene.control.cell.ComboBoxTableCell
 import javafx.scene.input.KeyCharacterCombination
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
+import javafx.scene.layout.BackgroundFill
 import javafx.scene.paint.Color
+import javafx.scene.paint.Paint
+import java.time.Duration
 
 
 fun main(args : Array<String>) {
@@ -36,6 +41,7 @@ class ParentView : View(){
     val dataTypes = DataTypes()
     var colum: TableColumn<Area, String?>? = null
     var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
+    var status = Label()
     init {
         primaryStage.setOnCloseRequest {
             if (controller.tableData.isEmpty()) return@setOnCloseRequest
@@ -186,6 +192,9 @@ class ParentView : View(){
                 vgrow = Priority.ALWAYS
                 isClosable = false
                 tableView = tableview(controller.getData()) {
+                    style(true) {
+                        borderColor += box(Color.GRAY)
+                    }
                     isEditable = true
                     // readonlyColumn("№", )
                     readonlyColumn("Кв", Area::numberKv)
@@ -302,7 +311,9 @@ class ParentView : View(){
                                     par1Key!!.value to par1Val!!.text,
                                     par2Key!!.value to par2Val!!.text,
                                     parRes!!.value to parResVal!!.text)
-                                tableViewEditModel.commit()
+                                status.text = "Операция выполнена" //todo ani
+
+                                    //tableViewEditModel.commit()
                             }
 
                         }
@@ -315,7 +326,27 @@ class ParentView : View(){
 
         }
 
-        //progressBar.attachTo(this)
+        status = label{
+            val fade = FadeTransition()
+            fade.node = this
+            fade.fromValue = 0.0
+            fade.toValue = 1.0
+            fade.isAutoReverse = true
+            fade.cycleCount = 2
+            fade.duration = javafx.util.Duration(500.0)
+            vboxConstraints {
+                margin = Insets(5.0)
+                minWidth = 500.0
+            }
+            /*style{
+                backgroundColor += c(255, 123, 123, 1.0)
+            }*/
+            textProperty().onChange {
+                fade.playFromStart()
+            }
+        }
+
+        /*//progressBar.attachTo(this)
         //progressBar.prefWidth = this.width
         progressBar = progressbar {
             prefWidth = tableView!!.width
@@ -323,14 +354,11 @@ class ParentView : View(){
                 borderColor += box(Color.RED)
             }
 
-           /* progressProperty().addListener {
+           *//* progressProperty().addListener {
                 observableValue, old, new -> print("VALUE: $observableValue $old $new")
-            }*/
-
+            }*//*
             //isVisible = false
-
-
-        }
+        }*/
     }
 
     private fun preSaveCheck(): Boolean{
@@ -363,9 +391,9 @@ class ParentView : View(){
         if (dublicate.size > 0){
             message += "\nДубликаты в ${dublicate.joinToString { "кв: ${it.numberKv} выд: ${it.number}"}}"
         }
-        if (skipped.isNotEmpty()){
+        /*if (skipped.isNotEmpty()){
             message += "\nПропущены выдела в кв ${skipped.joinToString { it.toString() }}"
-        }
+        }*/
 
         if (message.isNotBlank()){
             if (message.startsWith("\nПропущены выдела")) confirm("Сохринть?", content = message){
