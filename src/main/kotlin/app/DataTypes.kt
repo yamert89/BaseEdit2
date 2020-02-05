@@ -1,13 +1,32 @@
 package app
 
 class DataTypes {
+
+    val EMTPTY = ""
+    val KV = "кв"
+    val CATEGORY_AREA = "кат. земель"
+    val CATEGORY_PROTECTION = "кат. защитности"
+    val OZU = "озу"
+    val LESB = "lesb"
+
     //val categoryArea: MutableMap<String, String> = mutableMapOf()
     val categoryProtection: MutableMap<String, String> = mutableMapOf()
     val ozu: MutableMap<String, String> = mutableMapOf()
-    val parameters = mapOf<String, Any>(
-        "" to "",
-        "кв" to Area::numberKv,
-        "кат. земель" to Area::categoryArea
+    val filterParameters = listOf(
+        EMTPTY,
+        KV,
+        CATEGORY_AREA,
+        CATEGORY_PROTECTION,
+        OZU,
+        LESB
+    )
+
+    val executeParameters = listOf(
+        EMTPTY,
+        CATEGORY_AREA,
+        CATEGORY_PROTECTION,
+        OZU,
+        LESB
     )
     init {
 
@@ -38,3 +57,4 @@ class DataTypes {
 
     }
 }
+

@@ -38,7 +38,8 @@ class ParentView : View(){
     var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
     init {
         primaryStage.setOnCloseRequest {
-            confirm("Подтверждение", "Сохранить?"){
+            if (controller.tableData.isEmpty()) return@setOnCloseRequest
+            confirm("Подтверждение", "Сохранить?", cancelButton = ButtonType.NO){
                 if (!preSaveCheck()) return@setOnCloseRequest
                 controller.save(null)
             }
@@ -90,7 +91,7 @@ class ParentView : View(){
 
 
 
-                    tableView!!.selectionModel!!.select(selectedRow,  tableView!!.columns[3])
+                    tableView!!.selectionModel!!.select(selectedRow,  tableView!!.columns[1])
 
 
                     val tableCellCombo = colum!!.cellFactory.call(colum!!)
@@ -188,11 +189,14 @@ class ParentView : View(){
                     isEditable = true
                     // readonlyColumn("№", )
                     readonlyColumn("Кв", Area::numberKv)
-                     column("Выд", Area::number).makeEditable()
+                     column("Выд", Area::number).makeEditable()/*.setOnEditCancel {
+                         tableView!!.selectionModel.select(selectedRow, tableView!!.columns[3])
+
+                     }*/
                     val areaColumn = column("Площадь", Area::area).makeEditable()
-                    colum = column("К. защитности", Area::categoryProtection)
-                    colum!!.isEditable = true
-                    colum!!.cellFactory = ComboBoxTableCell.forTableColumn(dataTypes.categoryProtection.values.toList().asObservable())
+                    colum = column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
+                   /* colum!!.isEditable = true
+                    colum!!.cellFactory = ComboBoxTableCell.forTableColumn()*/
 
 
                     //dataTypes.categoryProtection.values.toList().asObservable()
@@ -208,10 +212,13 @@ class ParentView : View(){
                         selectedCol = this.selectedColumn
                     }
 
+
+
                     enableCellEditing() //enables easier cell navigation/editing
                     //enableDirtyTracking() //flags cells that are dirty
 
                     tableViewEditModel = editModel
+
 
 
 
@@ -239,7 +246,7 @@ class ParentView : View(){
                 }
             }
 
-            tab("Утилиты"){
+            tab("Пакетное обновление"){
                 var par1Key: ComboBox<String>? = null
                 var par2Key: ComboBox<String>? = null
                 var par1Val: TextField? = null
@@ -247,30 +254,29 @@ class ParentView : View(){
                 var parRes: ComboBox<String>? = null
                 var parResVal: TextField? = null
 
-                isClosable = false
+                //isClosable = false
                 val margins = Insets(20.0)
                 vbox {
                     hbox{
-                        val values = dataTypes.parameters.keys.toList()
-
+                        val filterParameters = dataTypes.filterParameters
                         vbox {
 
                             label("Параметр 1")
-                            par1Key = combobox(values = values) { }
+                            par1Key = combobox(values = filterParameters) { }
                             label("Параметр 2")
-                            par2Key = combobox(values = values) { }
+                            par2Key = combobox(values = filterParameters) { }
                             vboxConstraints { margin = margins }
                         }
                         vbox {
-                            label("Фильтр 1")
+                            label("Значение 1")
                             par1Val = textfield {  }
-                            label("Фильтр 2")
+                            label("Значение 2")
                             par2Val = textfield {  }
                             vboxConstraints { margin = margins }
                         }
                         vbox {
                             label("Применить к...")
-                            parRes = combobox(values = values) {  }
+                            parRes = combobox(values = dataTypes.executeParameters) {  }
                             vboxConstraints { margin = margins }
                         }
                         vbox {
@@ -287,10 +293,16 @@ class ParentView : View(){
                         }
                         button("Применить") {
                             action{
+                                if(parRes!!.value == null || (par1Key!!.value == null && par2Key!!.value == null)){
+                                    error("Значения не выбраны")
+                                    return@action
+                                }
+
                                 controller.executeUtil(
                                     par1Key!!.value to par1Val!!.text,
                                     par2Key!!.value to par2Val!!.text,
                                     parRes!!.value to parResVal!!.text)
+                                tableViewEditModel.commit()
                             }
 
                         }
@@ -365,14 +377,15 @@ class ParentView : View(){
         return true
     }
 
-    private fun List<Int>.containsSkipped(): Boolean{
-        var num = last()
-        for(i in (size - 2) downTo 0){
-            if(get(i) - num != 1) {
-                num = get(i)
+    private fun List<Int>.containsSkipped(): Boolean{//fixme
+
+        val sorted = this.sorted()
+        var num = sorted.last()
+        for(i in (sorted.size - 2) downTo 0){
+            if(sorted[i] - num != 1) {
                 return true
             }
-            num = get(i)
+            num = sorted[i]
         }
         return false
     }

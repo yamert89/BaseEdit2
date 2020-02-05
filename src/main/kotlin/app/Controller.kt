@@ -4,6 +4,7 @@ import javafx.collections.ObservableList
 import tornadofx.Controller
 import tornadofx.asObservable
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalTime
@@ -12,6 +13,7 @@ import java.time.format.DateTimeFormatter
 class GenController: Controller() {
     val tableData = emptyList<Area>().toMutableList().asObservable()
     private var filePath = ""
+    private val dataTypes = DataTypes()
 
 
     fun getData(): ObservableList<Area> {
@@ -34,8 +36,39 @@ class GenController: Controller() {
         print("init data done")
     }
 
-    fun executeUtil(param1: Pair<Any, Any>, param2: Pair<Any, Any>, resParam: Pair<Any, Any>){
-        tableData.filter { param1.first == param1.second }
+    fun executeUtil(param1: Pair<Any?, String>, param2: Pair<Any?, String>, resParam: Pair<Any, String>){
+        val filteredData = tableData.filter {
+            (if(param1.first != dataTypes.EMTPTY && param1.first != null) {
+                when(param1.first){
+                    dataTypes.KV -> it.numberKv == param1.second.toInt()
+                    dataTypes.CATEGORY_AREA -> it.categoryArea == param1.second
+                    dataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param1.second
+                    dataTypes.OZU -> it.ozu == param1.second
+                    dataTypes.LESB -> it.lesb == param1.second
+                    else -> throw IllegalArgumentException("invalid param")
+                }
+            } else true) &&
+                    (if(param2.first != "" && param2.first != null) {
+                        when(param2.first){
+                            dataTypes.KV -> it.numberKv == param2.second.toInt()
+                            dataTypes.CATEGORY_AREA -> it.categoryArea == param2.second
+                            dataTypes.CATEGORY_PROTECTION -> it.categoryProtection == param2.second
+                            dataTypes.OZU -> it.ozu == param2.second
+                            dataTypes.LESB -> it.lesb == param2.second
+                            else -> throw IllegalArgumentException("invalid param")
+                        }
+                    } else true)
+
+        }
+
+        filteredData.forEach {
+            when(resParam.first){
+                dataTypes.CATEGORY_AREA -> it.categoryArea = resParam.second
+                dataTypes.CATEGORY_PROTECTION -> it.categoryProtection = resParam.second
+                dataTypes.OZU -> it.ozu = resParam.second
+                dataTypes.LESB -> it.lesb = resParam.second
+            }
+        }
     }
 
 
