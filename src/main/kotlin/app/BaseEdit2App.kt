@@ -198,11 +198,20 @@ class ParentView : View(){
                     isEditable = true
                     // readonlyColumn("№", )
                     readonlyColumn("Кв", Area::numberKv)
-                     column("Выд", Area::number).makeEditable()/*.setOnEditCancel {
-                         tableView!!.selectionModel.select(selectedRow, tableView!!.columns[3])
+                     column("Выд", Area::number).makeEditable().setOnEditCommit {
+                         if (it.newValue > 999 || it.newValue < 0) {
+                             error("Невалидное значение")
+                             editModel.rollbackSelected()
+                         }
+                         //tableView!!.selectionModel.select(selectedRow, tableView!!.columns[3])
 
-                     }*/
-                    val areaColumn = column("Площадь", Area::area).makeEditable()
+                     }
+                    column("Площадь", Area::area).makeEditable().setOnEditCommit {
+                        if(it.newValue > 9999 || it.newValue < 0){
+                            error("Невалидное значение")
+                            editModel.rollbackSelected()
+                        }
+                    }
                     colum = column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
                    /* colum!!.isEditable = true
                     colum!!.cellFactory = ComboBoxTableCell.forTableColumn()*/
@@ -214,7 +223,12 @@ class ParentView : View(){
                     //useComboBox<Int>(dataTypes.categoryProtection.keys.toList().asObservable())
                     readonlyColumn("К. земель", Area::categoryArea)
                     column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
-                    column("lesb", Area::lesb).makeEditable()
+                    column("lesb", Area::lesb).makeEditable().setOnEditCommit {
+                        if(it.newValue.length > 4){
+                            error("Невалидное значение")
+                            editModel.rollbackSelected()
+                        }
+                    }
                     selectionModel.selectedItemProperty().onChange {
                         selected = this.selectedItem
                         selectedRow = this.selectedCell?.row ?: selectedRow
@@ -241,9 +255,9 @@ class ParentView : View(){
                     }*/
 
 
-                    areaColumn.setOnEditCommit {
+                    /*areaColumn.setOnEditCommit {
                         if (it.newValue < 0) alert(Alert.AlertType.ERROR, "Error", "Отрицательная площадь")
-                    }
+                    }*/
 
 
 
