@@ -7,7 +7,9 @@ import javafx.util.converter.DefaultStringConverter
 import javafx.util.converter.IntegerStringConverter
 import tornadofx.*
 import app.*
+import javafx.event.EventType
 import javafx.scene.AccessibleAction
+import javafx.scene.control.cell.ComboBoxTableCell
 import javafx.scene.input.KeyCharacterCombination
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
@@ -36,14 +38,9 @@ class ParentView : View(){
     var tableViewEditModel: TableViewEditModel<Area> by singleAssign()
     init {
         primaryStage.setOnCloseRequest {
-            alert(Alert.AlertType.CONFIRMATION,
-                "Подтверждение", "Сохранить?",
-                ButtonType.OK,
-                ButtonType.NO){
-                if(it == ButtonType.OK) {
-                    if (!preSaveCheck()) return@setOnCloseRequest
-                    controller.save(null)
-                }
+            confirm("Подтверждение", "Сохранить?"){
+                if (!preSaveCheck()) return@setOnCloseRequest
+                controller.save(null)
             }
         }
     }
@@ -86,23 +83,41 @@ class ParentView : View(){
                         println("selected is null")
                         return@action
                     }
-                    val item = selected!!
-                    controller.tableData.add(selectedRow,
-                        Area(0, item.numberKv, 0.0, item.categoryArea, "0", item.ozu, item.lesb, item.rawData)
-                    )
+                    var item = selected!!
+                    item = Area(0, item.numberKv, 0.0, item.categoryArea, "-", item.ozu, item.lesb, item.rawData)
+
+                    controller.tableData.add(selectedRow, item)
 
 
 
-                    tableView?.selectionModel?.select(selectedRow,  selectedCol)
+                    tableView!!.selectionModel!!.select(selectedRow,  tableView!!.columns[3])
+
+
+                    val tableCellCombo = colum!!.cellFactory.call(colum!!)
+                    val fieldsCombo = tableCellCombo::class.java
+                    tableCellCombo.setOnMouseClicked { print("click") }
+
+
+                    //val combo = fieldCombo.get(colum!!.cellFactory.call(colum!!)) as ComboBox<String>
+                    //combo.executeAccessibleAction(AccessibleAction.EXPAND)
+
+
+
+
 
                     try{
                         //colum?.cellFactoryProperty().
                         //colum?.cellFactory.toProperty().get().call(colum).startEdit()
-                        tableView?.selectionModel?.selectedCells?.get(0)
+                        //val tableData = tableView?.selectionModel?.selectedCells[0]
                         val cell = colum?.cellFactory.toProperty().value.call(colum)
+
+                        //val gr = cell.graphic as ComboBox<String>
+                        //gr.executeAccessibleAction()
                         cell.updateTableColumn(colum)
                         cell.updateTableView(tableView)
                        cell.executeAccessibleAction(AccessibleAction.EXPAND)
+
+
 
                     }catch (e: Exception){
                         e.printStackTrace()
@@ -175,7 +190,14 @@ class ParentView : View(){
                     readonlyColumn("Кв", Area::numberKv)
                      column("Выд", Area::number).makeEditable()
                     val areaColumn = column("Площадь", Area::area).makeEditable()
-                    colum = column("К. защитности", Area::categoryProtection).makeEditable().useComboBox(dataTypes.categoryProtection.values.toList().asObservable())
+                    colum = column("К. защитности", Area::categoryProtection)
+                    colum!!.isEditable = true
+                    colum!!.cellFactory = ComboBoxTableCell.forTableColumn(dataTypes.categoryProtection.values.toList().asObservable())
+
+
+                    //dataTypes.categoryProtection.values.toList().asObservable()
+
+
                     //useComboBox<Int>(dataTypes.categoryProtection.keys.toList().asObservable())
                     readonlyColumn("К. земель", Area::categoryArea)
                     column("ОЗУ", Area::ozu).makeEditable().useComboBox(dataTypes.ozu.values.toList().asObservable())
@@ -300,14 +322,59 @@ class ParentView : View(){
     }
 
     private fun preSaveCheck(): Boolean{
-        val list = controller.tableData.filter { it.categoryProtection == "0" || it.number == 0 }
-        if(list.isNotEmpty()) {
-            alert(Alert.AlertType.ERROR,
-                "Ошибка",
-                "Категория защитности или номер выдела не проставлены в кварталах: ${list.map { it.numberKv }.distinct().joinToString(", "){ it.toString()}}"  )
+        val dublicate = arrayListOf<Area>()
+        val catProt = arrayListOf<Area>()
+        val skipped = arrayListOf<Int>()
+        val zeroNumber = arrayListOf<Area>()
+        val map = mutableMapOf<Int, MutableList<Int>>()
+        controller.tableData.forEach {
+            if (it.categoryProtection == "-") catProt.add(it)
+            if(it.number == 0) zeroNumber.add(it)
+            if (!map.containsKey(it.numberKv)) map[it.numberKv] = mutableListOf()
+            map[it.numberKv]!!.add(it.number)
+        }
+        if (map.isNotEmpty()){
+            map.forEach {
+                if (it.value.distinct().size != it.value.size) dublicate.plus(it)
+                if(it.value.containsSkipped()) skipped.add(it.key)
+            }
+        }
+
+        var message = ""
+
+        if (catProt.size > 0){
+            message += "Категория защитности не проставлена в ${catProt.joinToString(", "){"кв: ${it.numberKv} выд: ${it.number}"}}"
+        }
+        if (zeroNumber.size > 0){
+            message += "\nНомер выдела не проставлен в кв ${zeroNumber.joinToString(", "){ it.numberKv.toString()}}"
+        }
+        if (dublicate.size > 0){
+            message += "\nДубликаты в ${dublicate.joinToString { "кв: ${it.numberKv} выд: ${it.number}"}}"
+        }
+        if (skipped.isNotEmpty()){
+            message += "\nПропущены выдела в кв ${skipped.joinToString { it.toString() }}"
+        }
+
+        if (message.isNotBlank()){
+            if (message.startsWith("\nПропущены выдела")) confirm("Сохринть?", content = message){
+                return true
+            } else alert(Alert.AlertType.ERROR, "Ошибка",  message  )
             return false
         }
+
         return true
+    }
+
+    private fun List<Int>.containsSkipped(): Boolean{
+        var num = last()
+        for(i in (size - 2) downTo 0){
+            if(get(i) - num != 1) {
+                num = get(i)
+                return true
+            }
+            num = get(i)
+        }
+        return false
     }
 
 

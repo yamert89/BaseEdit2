@@ -31,6 +31,7 @@ dependencies {
     implementation("org.openjfx:javafx-base:13")
     implementation("org.openjfx:javafx-controls:13")
     implementation("org.openjfx:javafx-graphics:13")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.3.61")
     /*implementation("org.openjfx:javafx-base:13")
     implementation(files (
         "lib/javafx.base.jar",
